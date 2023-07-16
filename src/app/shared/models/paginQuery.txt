@@ -1,0 +1,24 @@
+UserPaginationDTO usersPagination = new UserPaginationDTO();
+var query = _dbContext.Users.Where(x => !x.IsDeleted).AsQueryable();
+
+if (!string.IsNullOrEmpty(model.GlobalFilter))
+{
+    string filter = model.GlobalFilter.Trim().ToLower();
+    query = query.Where(u => u.FirstName.ToLower().Trim().Contains(filter)
+        || u.LastName.ToLower().Trim().Contains(filter)
+        || u.Email.ToLower().Trim().Contains(filter));
+}
+
+usersPagination.TotalRecords = await query.CountAsync();
+
+if (model.PageNumber == 0)
+{
+    usersPagination.RecordsList = await query.ToListAsync();
+    return usersPagination;
+}
+
+int skipCount = (model.PageNumber - 1) * model.PageSize;
+var users = await query.Skip(skipCount).Take(model.PageSize).ToListAsync();
+usersPagination.RecordsList = users;
+
+return usersPagination;
