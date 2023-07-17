@@ -1,0 +1,38 @@
+using Microsoft.AspNetCore.Http;
+using System.Linq;
+
+public static class HttpContextHelper
+{
+    public static string GetCurrentUserId(IHttpContextAccessor httpContextAccessor)
+    {
+        var httpContext = httpContextAccessor.HttpContext;
+        return httpContext.User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
+    }
+}
+
+services.AddHttpContextAccessor(); //doda se u service initializer
+
+
+
+public class UserBL  //INJECTUJEM U UserBL
+{
+    private readonly IHttpContextAccessor _httpContextAccessor;
+
+    public UserBL(IHttpContextAccessor httpContextAccessor)
+    {
+        _httpContextAccessor = httpContextAccessor;
+    }
+
+    public async Task UpdateUser(UserUpdateViewModel model)
+    {
+        // Get the current HttpContext
+        var httpContext = _httpContextAccessor.HttpContext;
+
+        // Get the user ID from the HttpContext
+        string userId = HttpContextHelper.GetCurrentUserId(_httpContextAccessor);
+
+        // Use the retrieved userId in your database update logic, such as setting the ModifiedBy field
+        // ...
+    }
+}
+
