@@ -11,6 +11,7 @@ import {User} from "../../../shared/models/user-model";
 export class ReactiveUserFormComponent {
 
   userForm: FormGroup;
+  isUpdate: boolean = false;
 
   constructor(
     private fb: FormBuilder,
@@ -20,24 +21,30 @@ export class ReactiveUserFormComponent {
 
   ngOnInit() {
     this.initForm();
+    this.populateForm();
   }
 
   private initForm() {
-    const user: User = this.config.data.user;
-
     this.userForm = this.fb.group({
-      firstName: [user.firstName, Validators.required],
-      lastName: [user.lastName, Validators.required],
-      email: [user.email, [Validators.required, Validators.email]],
-      role: [user.role, Validators.required],
-      office: [user.office, Validators.required]
+      firstName: ['', Validators.required],
+      lastName: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
+      role: ['', Validators.required],
+      office: ['', Validators.required]
     });
+  }
+
+  private populateForm() {
+    const user: User = this.config.data.user;
+    if (user) {
+      this.isUpdate = true;
+      this.userForm.patchValue(user);
+    }
   }
 
   onSaveUser() {
     if (this.userForm.valid) {
       const updatedUser: User = {
-        ...this.config.data.user,
         ...this.userForm.value
       };
 
