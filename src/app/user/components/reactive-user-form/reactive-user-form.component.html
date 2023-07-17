@@ -1,0 +1,39 @@
+<form [formGroup]="userForm" (ngSubmit)="onSaveUser()">
+  <div class="form-group">
+    <label for="firstName">First Name</label>
+    <input type="text" id="firstName" class="form-control" formControlName="firstName">
+    <div *ngIf="firstName.invalid && firstName.touched" class="invalid-feedback">First Name is required.</div>
+  </div>
+
+  <div class="form-group">
+    <label for="lastName">Last Name</label>
+    <input type="text" id="lastName" class="form-control" formControlName="lastName">
+    <div *ngIf="lastName.invalid && lastName.touched" class="invalid-feedback">Last Name is required.</div>
+  </div>
+
+  <div class="form-group">
+    <label for="email">Email</label>
+    <input type="email" id="email" class="form-control" formControlName="email">
+    <div *ngIf="email.invalid && email.touched" class="invalid-feedback">
+      <div *ngIf="email.errors.required">Email is required.</div>
+      <div *ngIf="email.errors.email">Invalid email format.</div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="role">Role</label>
+    <input type="text" id="role" class="form-control" formControlName="role">
+    <div *ngIf="role.invalid && role.touched" class="invalid-feedback">Role is required.</div>
+  </div>
+
+  <div class="form-group">
+    <label for="office">Office</label>
+    <input type="text" id="office" class="form-control" formControlName="office">
+    <div *ngIf="office.invalid && office.touched" class="invalid-feedback">Office is required.</div>
+  </div>
+
+  <div class="form-group">
+    <button type="submit" class="btn btn-primary" [disabled]="userForm.invalid">Save</button>
+    <button type="button" class="btn btn-secondary" (click)="onCancelUserForm()">Cancel</button>
+  </div>
+</form>

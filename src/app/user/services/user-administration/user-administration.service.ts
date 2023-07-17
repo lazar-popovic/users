@@ -16,6 +16,21 @@ export class UserAdministrationService {
 
   private apiUrl = "https://dummyjson.com/users";
 
+  //sortiranje
+ /* getUsers(sortField?: string, sortOrder?: string): Observable<User[]> {
+    let params = new HttpParams();
+
+    // Check if sortField and sortOrder are provided, otherwise use default sorting
+    if (sortField && sortOrder) {
+      params = params.set('sortField', sortField).set('sortOrder', sortOrder);
+    } else {
+      // Set default sorting options
+      params = params.set('sortField', 'firstName').set('sortOrder', 'asc');
+    }
+
+    return this.http.get<User[]>(`${this.apiUrl}/users`, { params });
+  }*/
+
   getUsers(page: number, limit: number, searchTerm?: string): Observable<UserPaginationViewmodel<User[]>> {
     let params = new HttpParams()
       .set('skip', page.toString())

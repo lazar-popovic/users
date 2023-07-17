@@ -35,7 +35,25 @@ export class UserAdministrationComponent implements OnInit{
     this.loadUsersLazy();
   }
 
-  loadUsersLazy(event?: TableLazyLoadEvent) {
+/*
+  import { SortEvent } from 'primeng/api';
+onSort(event: SortEvent) {
+  const sortField = event.field; // Extract the sort field
+  const sortOrder = event.order === 1 ? 'asc' : 'desc'; // Extract the sort order and convert to 'asc' or 'desc'
+
+  // Make the server-side API call with the sort parameters
+  this.userService.getUsers(this.pageNumber, this.pageSize, this.searchTerm, sortField, sortOrder).subscribe(
+    (response) => {
+      this.users = response.data; // Update the users data with the sorted result
+    },
+    (error) => {
+      // Handle error
+    }
+  );
+}
+*/
+
+loadUsersLazy(event?: TableLazyLoadEvent) {
     this.loading = true;
     const page = event ? event.first / event.rows + 1 : 1;
     const limit = event ? event.rows : 10;

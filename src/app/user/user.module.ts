@@ -5,13 +5,15 @@ import {FormsModule} from "@angular/forms";
 import { UserFormComponent } from './components/user-form/user-form.component';
 import {HttpClient, HttpClientModule} from "@angular/common/http";
 import {PrimeModule} from "../prime/prime.module";
+import { ReactiveUserFormComponent } from './components/reactive-user-form/reactive-user-form.component';
 
 
 
 @NgModule({
   declarations: [
     UserAdministrationComponent,
-    UserFormComponent
+    UserFormComponent,
+    ReactiveUserFormComponent
   ],
   exports: [
     UserAdministrationComponent
