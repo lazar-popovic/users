@@ -9,6 +9,26 @@ if (!string.IsNullOrEmpty(model.GlobalFilter))
         || u.Email.ToLower().Trim().Contains(filter));
 }
 
+// Sorting
+if (!string.IsNullOrEmpty(model.SortField) && !string.IsNullOrEmpty(model.SortOrder))
+{
+    switch (model.SortField.ToLower())
+    {
+        case "firstname":
+            query = (model.SortOrder.ToLower() == "desc") ? query.OrderByDescending(u => u.FirstName) : query.OrderBy(u => u.FirstName);
+            break;
+        case "lastname":
+            query = (model.SortOrder.ToLower() == "desc") ? query.OrderByDescending(u => u.LastName) : query.OrderBy(u => u.LastName);
+            break;
+        case "email":
+            query = (model.SortOrder.ToLower() == "desc") ? query.OrderByDescending(u => u.Email) : query.OrderBy(u => u.Email);
+            break;
+        // Add more cases for additional fields if needed
+        default:
+            break;
+    }
+}
+
 usersPagination.TotalRecords = await query.CountAsync();
 
 if (model.PageNumber == 0)
