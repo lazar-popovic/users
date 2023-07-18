@@ -1,0 +1,30 @@
+1) builder.services.AddAutoMapper(typeof(Program).Assembly);
+2)DI IMapper
+3)napravi klasu AutoMapperProfile : Profile
+    -napravi konstruktor
+      -unutar konstruktora: CreateMap<SuperHero, SuperHeroDTO>();
+4)heroes.Select(hero => _mapper.Map<SuperHeroDTO>())
+
+LOCALIZATION
+
+builder.Services.AddLocalization();
+var localizationOptions = new RequestLocalizationOptions();
+var supportedCultures = new[]
+{
+    new CultureInfo("en-US"),
+    new CultureInfo("sr-Latn-RS"),
+};
+
+localizationOptions.SupportedCultures = supportedCultures;
+localizationOptions.SupportedUICultures = supportedCultures;
+localizationOptions.SetDefaultCulture("en-US");
+localizationOptions.ApplyCurrentCultureToResponseHeaders = true;
+
+app.UseRequestLocalization(localizationOptions);
+
+1)Napravi novi folder Resources
+  -unutar njega klasu SharedResource
+  -napravi Resource fajl SharedResource.en-US.resx
+  -napravi Resource fajl SharedResource.sr-Latn-RS.resx
+
+https://www.youtube.com/watch?v=j7PGZ8tnejE
