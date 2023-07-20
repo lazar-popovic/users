@@ -1,0 +1,72 @@
+public class UnassignedEquipmentFilterDTO
+{
+    public int PageNumber { get; set; }
+    public int PageSize { get; set; }
+    public string GlobalFilter { get; set; }
+    public string CategoryNameFilter { get; set; }
+}
+
+
+[HttpGet("unassigned-equipment")]
+public async Task<IActionResult> GetUnassignedEquipment([FromQuery] UnassignedEquipmentFilterDTO filterDTO)
+{
+        var query = _dbContext.Equipments
+            .Where(e => e.UserId == null);
+
+        if (!string.IsNullOrEmpty(filterDTO.CategoryNameFilter))
+        {
+            query = query.Where(e => e.Item.Category.Name.ToLower().Contains(filterDTO.CategoryNameFilter.ToLower()));
+        }
+
+        if (!string.IsNullOrEmpty(filterDTO.GlobalFilter))
+        {
+            var searchFilter = filterDTO.GlobalFilter.ToLower();
+            query = query.Where(e =>
+                e.Item.Name.ToLower().Contains(searchFilter) ||
+                e.Item.Category.Name.ToLower().Contains(searchFilter) ||
+                e.ItemCode.ToLower().Contains(searchFilter));
+        }
+
+        var totalRecords = await query.CountAsync();
+
+        query = query.Skip((filterDTO.PageNumber - 1) * filterDTO.PageSize)
+            .Take(filterDTO.PageSize);
+
+        // Retrieve the unassigned equipment data
+        var unassignedEquipment = await query
+            .Include(e => e.Item.Category) // Include the Category navigation property for filtering
+            .Select(e => new
+            {
+                e.Item.Name,
+                CategoryName = e.Item.Category.Name,
+                e.ItemCode
+            })
+            .ToListAsync();
+
+        return Ok(new
+        {
+            TotalRecords = totalRecords,
+            RecordsList = unassignedEquipment
+        });
+}
+
+
+[HttpGet("equipment-categories")]
+public async Task<IActionResult> GetEquipmentCategories()
+{
+    try
+    {
+        var equipmentCategories = await _dbContext.Categories
+            .Where(c => c.CategoryType == CategoryType.Equipment)
+            .Select(c => c.Name)
+            .ToListAsync();
+
+        return Ok(equipmentCategories);
+    }
+    catch (Exception ex)
+    {
+        // Handle any errors and return a bad request response with an error message
+        return BadRequest(new { Message = "Failed to retrieve equipment categories.", Error = ex.Message });
+    }
+}
+
