@@ -1,0 +1,77 @@
+    Update the Unassigned Equipment Component:
+
+In the Unassigned Equipment component, add a function to handle the assignment of items:
+
+import { Component } from '@angular/core';
+import { UserService } from '../services/user.service';
+
+@Component({
+  selector: 'app-unassigned-equipment',
+  templateUrl: './unassigned-equipment.component.html',
+  styleUrls: ['./unassigned-equipment.component.css']
+})
+export class UnassignedEquipmentComponent {
+  constructor(private userService: UserService) {}
+
+  // Your functions to handle button actions, e.g., assignItem()
+  // ...
+
+  // Method to check if the "Assign" buttons should be disabled
+  areAssignButtonsDisabled(): boolean {
+    // Disable "Assign" buttons when no user is selected
+    return !this.userService.selectedUser;
+  }
+
+  // Method to assign an item to the selected user
+  assignItem(item: Item) {
+    // Check if a user is selected
+    const selectedUser = this.userService.selectedUser;
+    if (selectedUser) {
+      // Call your API to assign the item to the user
+      // Pass the item's information and the selected user's information to the API
+      // Handle the response from the API as needed
+
+      // For example:
+      this.equipmentService.assignItemToUser(item.itemId, selectedUser.userId)
+        .subscribe(
+          (response) => {
+            // Handle the response from the API
+            // For example, display a success message
+          },
+          (error) => {
+            // Handle errors, if any
+            // For example, display an error message
+          }
+        );
+    }
+  }
+}
+
+In the Equipment service (e.g., EquipmentService),
+ create a method to make the API call to assign the item to the user:
+
+ import { Injectable } from '@angular/core';
+ import { HttpClient } from '@angular/common/http';
+ import { Observable } from 'rxjs';
+ import { Item } from '../models/item.model';
+
+ @Injectable({
+   providedIn: 'root'
+ })
+ export class EquipmentService {
+   private apiUrl = 'your-api-url';
+
+   constructor(private http: HttpClient) {}
+
+   // Method to assign an item to a user
+   assignItemToUser(itemId: number, userId: number): Observable<any> {
+     // Make the API call to assign the item to the user
+     const url = `${this.apiUrl}/assignItem`;
+     const body = {
+       itemId: itemId,
+       userId: userId
+     };
+     return this.http.post<any>(url, body);
+   }
+ }
+

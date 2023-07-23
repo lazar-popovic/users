@@ -1,0 +1,79 @@
+To implement the "unassign" functionality, you can follow similar steps as before, but this time,
+you will send the itemId to the backend,
+and the backend will set the userId of the corresponding Equipment record to null.
+
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class EquipmentService {
+  private apiUrl = 'your-api-url';
+
+  constructor(private http: HttpClient) {}
+
+  // Method to unassign an item from a user
+  unassignItem(itemId: number): Observable<any> {
+    // Make the API call to unassign the item from the user
+    const url = `${this.apiUrl}/unassignItem`;
+    const body = {
+      itemId: itemId
+    };
+    return this.http.post<any>(url, body);
+  }
+}
+
+    Call the Unassign API from the Assigned Equipment Component:
+
+In the AssignedEquipmentComponent,
+implement a function to handle the unassign action and call the unassignItem method from the EquipmentService:
+import { Component, OnDestroy } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { User } from '../models/user.model';
+import { EquipmentService } from '../services/equipment.service';
+
+@Component({
+  selector: 'app-assigned-equipment',
+  templateUrl: './assigned-equipment.component.html',
+  styleUrls: ['./assigned-equipment.component.css']
+})
+export class AssignedEquipmentComponent implements OnDestroy {
+  selectedUser: User | null;
+  private subscription: Subscription;
+
+  constructor(private equipmentService: EquipmentService) {
+    // Subscribe to the selectedUser$ observable
+    this.subscription = this.userService.selectedUser$.subscribe(
+      (user: User | null) => {
+        this.selectedUser = user;
+      }
+    );
+  }
+
+  ngOnDestroy() {
+    // Unsubscribe to avoid memory leaks
+    this.subscription.unsubscribe();
+  }
+
+  // Your functions to handle button actions, e.g., unassignItem()
+  // ...
+
+  // Method to unassign an item from the user
+  unassignItem(itemId: number) {
+    // Call the API to unassign the item from the user
+    this.equipmentService.unassignItem(itemId)
+      .subscribe(
+        (response) => {
+          // Handle the response from the API
+          // For example, display a success message
+        },
+        (error) => {
+          // Handle errors, if any
+          // For example, display an error message
+        }
+      );
+  }
+}
+
