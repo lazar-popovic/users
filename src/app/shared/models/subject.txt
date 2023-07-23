@@ -1,0 +1,109 @@
+import { Injectable } from '@angular/core';
+import { Subject } from 'rxjs';
+import { User } from '../models/user.model';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class UserService {
+  // Create a subject to hold the selected user
+  private selectedUserSubject = new Subject<User | null>();
+
+  // Expose an observable to be subscribed to in the component
+  selectedUser$ = this.selectedUserSubject.asObservable();
+
+  // Method to update the selected user in the service
+  updateSelectedUser(user: User | null) {
+    this.selectedUserSubject.next(user);
+  }
+}
+
+2)Subscribe to the Subject in the Assigned Equipment Component:
+
+In the component that contains the "assigned equipment" table with the dropdown to select users,
+subscribe to the selectedUser$ observable from the UserService:
+
+import { Component, OnDestroy } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { User } from '../models/user.model';
+import { UserService } from '../services/user.service';
+
+@Component({
+  selector: 'app-assigned-equipment',
+  templateUrl: './assigned-equipment.component.html',
+  styleUrls: ['./assigned-equipment.component.css']
+})
+export class AssignedEquipmentComponent implements OnDestroy {
+  selectedUser: User | null;
+  private subscription: Subscription;
+
+  constructor(private userService: UserService) {
+    // Subscribe to the selectedUser$ observable
+    this.subscription = this.userService.selectedUser$.subscribe(
+      (user: User | null) => {
+        this.selectedUser = user;
+      }
+    );
+  }
+
+  ngOnDestroy() {
+    // Unsubscribe to avoid memory leaks
+    this.subscription.unsubscribe();
+  }
+
+  // Your functions to handle button actions, e.g., unassignItem()
+  // ...
+
+  // Method to update the selected user when the dropdown value changes
+  onUserSelectionChange(user: User | null) {
+    this.userService.updateSelectedUser(user);
+  }
+}
+
+
+3)Disable "Assign" Buttons in the Unassigned Equipment Component:
+
+In the component that contains the "unassigned equipment" table with the "Assign" buttons,
+you can use the selectedUser property from the AssignedEquipmentComponent to disable the "Assign" buttons:
+
+import { Component } from '@angular/core';
+import { UserService } from '../services/user.service';
+
+@Component({
+  selector: 'app-unassigned-equipment',
+  templateUrl: './unassigned-equipment.component.html',
+  styleUrls: ['./unassigned-equipment.component.css']
+})
+export class UnassignedEquipmentComponent {
+  constructor(private userService: UserService) {}
+
+  // Your functions to handle button actions, e.g., assignItem()
+  // ...
+
+  // Method to check if the "Assign" buttons should be disabled
+  areAssignButtonsDisabled(): boolean {
+    // Disable "Assign" buttons when no user is selected
+    return !this.userService.selectedUser;
+  }
+}
+
+4)<!-- Table for unassigned equipment -->
+  <table>
+    <!-- Table headers -->
+
+    <!-- Table rows -->
+    <tr *ngFor="let item of unassignedItems">
+      <td>{{ item.itemName }}</td>
+      <td>{{ item.categoryName }}</td>
+      <td>{{ item.itemCode }}</td>
+      <td>{{ item.addedOn }}</td>
+      <td>
+        <!-- "Assign" button -->
+        <button [disabled]="areAssignButtonsDisabled()" (click)="assignItem(item)">Assign</button>
+      </td>
+      <td>
+        <!-- "Delete" button -->
+        <button (click)="deleteItem(item)">Delete</button>
+      </td>
+    </tr>
+  </table>
