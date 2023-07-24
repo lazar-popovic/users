@@ -1,0 +1,219 @@
+Task scheduler
+Create service that will send report with food and drinks to HR when report is requested.
+
+1)Create solution folder Services and project Inovatec.OfficeManagementTool.Scheduler inside it. Project is Console app. Use Windows task scheduler to schedule task. Task should be scheduled every day from monday to friday between 9h and 17h (you choose time. for example 11h).
+
+2)Scheduler should check if it should send report and send it. It takes all items in cart for one office, generate report and send it to all HRs in that office.
+
+3) When report is sent to email HR should have button Accept order. If HR press that button, HR will be redirected to some page and order will be created.
+
+4)Create page where HR will schedule sending report.
+
+
+2)
+	2.1) Retrieve all the offices that require a report.
+    2.2) For each office, retrieve all the items in the cart (OrderRequest) associated with that office.
+    2.3) Generate a report based on the items in the cart for that office.
+    2.4) Send the report to all HRs in that office.
+
+	2.1)
+		public List<Office> GetOfficesRequiringReport()
+		{
+
+			var today = DateTime.Today;
+
+			var officeIdsRequiringReport = dbContext.Scheduler
+				.Where(s => s.Date.Date == today)
+				.Select(s => s.OfficeId)
+				.Distinct()
+				.ToList();
+
+			var officesRequiringReport = dbContext.Offices
+				.Where(o => officeIdsRequiringReport.Contains(o.Id))
+				.ToList();
+
+			return officesRequiringReport;
+
+			var today = DateTime.Today;
+
+			var officesRequiringReport = dbContext.Scheduler
+			.Where(s => s.Date.Date == today)
+			.Include(s => s.Office) // Eager loading the Office entity
+			.Select(s => s.Office)
+			.Distinct()
+			.ToList();
+
+			return officesRequiringReport;
+
+		}
+
+		2.2)
+			public List<OrderRequest> GetItemsInCartForOffice(int officeId)
+			{
+				// Retrieve all items in the cart for the users belonging to the specified office,
+				// and include the related Item to get the ItemName
+				var itemsInCart = dbContext.OrderRequests
+					.Include(or => or.Item)
+					.Where(or => or.User.OfficeId == officeId)
+					.ToList();
+
+				return itemsInCart;
+			}
+
+		2.3)
+			private string GenerateReportContent(Office office, List<OrderRequest> cartItems)
+			{
+				StringBuilder reportContent = new StringBuilder();
+
+				reportContent.AppendLine("<h2>Report for " + office.Name + "</h2>");
+				reportContent.AppendLine("<table>");
+				reportContent.AppendLine("<tr><th>Item</th><th>Quantity</th></tr>");
+
+				foreach (var item in cartItems)
+				{
+					reportContent.AppendLine("<tr>");
+					reportContent.AppendLine("<td>" + item.Item.ItemName + "</td>");
+					reportContent.AppendLine("<td>" + item.Amount + "</td>");
+					reportContent.AppendLine("</tr>");
+				}
+
+				reportContent.AppendLine("</table>");
+
+				// Add the "Accept order" button
+				reportContent.AppendLine("<br>");
+				reportContent.AppendLine("<a href=\"http://yourwebsite.com/create-order?officeId=" + office.Id + "\">Accept order</a>");
+
+				return reportContent.ToString();
+			}
+		2.4)
+			public void SendReportToHR(Office office, List<OrderRequest> cartItems)
+			{
+				// Generate the report content.
+				string reportContent = GenerateReportContent(office, cartItems);
+
+				// Get all HRs in the office based on the Role property.
+				var hrUsers = dbContext.Users.Where(u => u.OfficeId == office.Id && u.Role == UserRole.HR).ToList();
+
+				// Implement the logic to send the report to all HRs in that office using your mail service.
+				foreach (var hrUser in hrUsers)
+				{
+					mailService.SendEmail(hrUser.Email, "Daily Report", reportContent);
+				}
+			}
+
+
+// IReportService.cs
+public interface IReportService
+{
+    void GenerateAndSendReports();
+}
+
+// IOrderRepository.cs
+public interface IOrderRepository
+{
+    List<Office> GetOfficesRequiringReport();
+    List<Item> GetItemsInCartForOffice(int officeId);
+}
+
+
+
+		4)
+			import { Component } from '@angular/core';
+			import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+			import { Office } from 'path-to-office-model'; // Replace with the path to your Office model
+			import { ScheduleService } from 'path-to-schedule-service'; // Replace with the path to your schedule service
+
+			@Component({
+			  selector: 'app-schedule-report',
+			  templateUrl: './schedule-report.component.html',
+			  styleUrls: ['./schedule-report.component.css']
+			})
+			export class ScheduleReportComponent {
+			  scheduleForm: FormGroup;
+			  offices: Office[]; // Array to hold the list of offices
+
+			  constructor(private formBuilder: FormBuilder, private scheduleService: ScheduleService) {
+				this.scheduleForm = this.formBuilder.group({
+				  officeId: ['', Validators.required],
+				  time: ['', Validators.required],
+				  repeatable: [true, Validators.required]
+				});
+
+				this.loadOffices();
+			  }
+
+			  loadOffices() {
+				// Implement the logic to fetch the list of offices from your API or service
+				this.scheduleService.getOffices().subscribe((offices) => {
+				  this.offices = offices;
+				});
+			  }
+
+			  scheduleReport() {
+				if (this.scheduleForm.valid) {
+				  // Implement the logic to schedule the report using the scheduleService
+				  // Pass the selected officeId, time, and repeatable status to the service method
+				  const officeId = this.scheduleForm.value.officeId;
+				  const time = this.scheduleForm.value.time;
+				  const repeatable = this.scheduleForm.value.repeatable;
+
+				  this.scheduleService.scheduleReport(officeId, time, repeatable).subscribe(() => {
+					// Handle success, e.g., show a success message or redirect to another page
+				  }, (error) => {
+					// Handle error, e.g., show an error message or log the error
+				  });
+				}
+			  }
+			}
+
+
+		4.1)
+		<form [formGroup]="scheduleForm">
+		  <div>
+			<label for="officeId">Select Office:</label>
+			<select formControlName="officeId">
+			  <option *ngFor="let office of offices" [value]="office.id">{{ office.name }}</option>
+			</select>
+		  </div>
+		  <div>
+			<label for="time">Select Time:</label>
+			<input type="time" formControlName="time">
+		  </div>
+		  <div>
+			<label for="repeatable">Repeat Daily:</label>
+			<input type="checkbox" formControlName="repeatable">
+		  </div>
+		  <button type="button" (click)="scheduleReport()">Schedule Report</button>
+		</form>
+
+		4.2)
+			import { Injectable } from '@angular/core';
+			import { HttpClient } from '@angular/common/http';
+			import { Observable } from 'rxjs';
+			import { environment } from 'path-to-environment'; // Replace with the path to your environment file
+
+			@Injectable({
+			  providedIn: 'root'
+			})
+			export class ScheduleService {
+			  private apiUrl = `${environment.apiBaseUrl}/schedule`; // Replace with your API endpoint URL
+
+			  constructor(private http: HttpClient) {}
+
+			  getOffices(): Observable<Office[]> {
+				// Implement the logic to fetch the list of offices from your API
+				return this.http.get<Office[]>(`${this.apiUrl}/offices`);
+			  }
+
+			  scheduleReport(officeId: number, time: string, repeatable: boolean): Observable<void> {
+				// Implement the logic to schedule the report using your API
+				// Send the officeId, time, and repeatable status in the request body
+				const payload = {
+				  officeId,
+				  time,
+				  repeatable
+				};
+
+				return this.http.post<void>(`${this.apiUrl}/schedule-report`, payload);
+			  }
+			}
